@@ -1,0 +1,385 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="中文简历生成器：实时预览、证件照裁剪、多模板、导出 PDF。" />
+  <title>中文简历生成器</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Resume Lab</p>
+      <h1>一页式中文简历生成器</h1>
+      <p class="muted">填写必要信息后即可实时查看 A4 预览，支持证件照裁剪与多模板导出 PDF。</p>
+      <div class="hero__actions">
+        <button class="btn" type="button" data-scroll="#resume-form">开始填写</button>
+        <button class="btn btn-ghost" type="button" data-action="download">下载 PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stack stack--vertical">
+    <section class="panel panel--form">
+      <h2 class="panel__title">填写关键信息</h2>
+      <p class="muted">字段均为规范简历中需要展示的内容，请保持精简。</p>
+      <form id="resume-form" class="form" autocomplete="off">
+        <div class="form__group">
+          <label><span>姓名</span><input id="fullName" type="text" placeholder="例如：李可欣" /></label>
+          <label><span>应聘职位</span><input id="targetRole" type="text" placeholder="投行分析师 / 产品经理" /></label>
+          <label><span>手机号</span><input id="phone" type="text" placeholder="138-0000-0000" /></label>
+          <label><span>邮箱</span><input id="email" type="email" placeholder="contact@yourmail.com" /></label>
+          <label><span>所在城市</span><input id="location" type="text" placeholder="上海" /></label>
+          <label><span>出生年月</span><input id="birth" type="text" placeholder="1997.03" /></label>
+          <label><span>最高学历 / 院校</span><input id="degree" type="text" placeholder="复旦大学 · 金融硕士" /></label>
+          <label><span>政治面貌 / 身份</span><input id="affiliation" type="text" placeholder="中共党员" /></label>
+          <label><span>个人主页（选填）</span><input id="website" type="text" placeholder="linkedin.com/in/you" /></label>
+          <label><span>GPA（选填）</span><input id="gpa" type="text" placeholder="GPA 3.8 / 4.0" /></label>
+          <label><span>证件照链接（选填）</span><input id="photoUrl" type="text" placeholder="https://example.com/photo.jpg" /></label>
+          <label><span>上传证件照</span><input id="photoFile" type="file" accept="image/*" /></label>
+        </div>
+
+        <label class="form__block">
+          <span>个人概述（2-3 句话）</span>
+          <textarea id="summary" rows="3" placeholder="概括 3 项亮点：年限、核心技能、突出成绩。"></textarea>
+        </label>
+
+        <label class="form__block">
+          <span>工作 / 实习经历（每行：时间 | 公司 | 职位 | 量化成果）</span>
+          <textarea id="experience" rows="6" placeholder="2023.03-至今 | XX证券 | ECM 分析师 | 跟进 IPO 项目 4 单"></textarea>
+        </label>
+
+        <label class="form__block">
+          <span>教育背景（每行：时间 | 学校 | 专业 | 成绩）</span>
+          <textarea id="education" rows="4" placeholder="2019.09-2021.06 | 复旦大学 | 金融硕士 | GPA 3.8/4.0"></textarea>
+        </label>
+
+        <label class="form__block">
+          <span>技能 / 证书（每行一项）</span>
+          <textarea id="skills" rows="4" placeholder="财务建模 / Excel VBA"></textarea>
+        </label>
+
+        <label class="form__block">
+          <span>荣誉 / 奖项（每行：年份 | 奖项 | 级别）</span>
+          <textarea id="awards" rows="4" placeholder="2022 | CFA 二级 | 已通过"></textarea>
+        </label>
+      </form>
+    </section>
+
+    <section class="panel panel--preview">
+      <div class="panel__header">
+        <div>
+          <h2 class="panel__title">一页 A4 预览</h2>
+          <p class="muted">实时同步填写内容，可切换不同风格。</p>
+        </div>
+        <button class="btn btn-ghost" type="button" data-action="download">下载 PDF</button>
+      </div>
+
+      <fieldset class="form__block">
+        <legend>模板风格</legend>
+        <div class="template-picker">
+          <label><input type="radio" name="template" value="classic" checked /> 深蓝正统</label>
+          <label><input type="radio" name="template" value="minimal" /> 极简留白</label>
+          <label><input type="radio" name="template" value="sidebar" /> 双色侧栏</label>
+        </div>
+      </fieldset>
+
+      <div class="preview-wrapper">
+        <article id="previewSheet" class="sheet sheet--classic" aria-live="polite">
+          <header class="sheet__header">
+            <div>
+              <h2 class="sheet__name" id="previewName"></h2>
+              <p class="sheet__role" id="previewRole"></p>
+              <p class="sheet__meta" id="previewMeta"></p>
+              <ul class="sheet__contact-list" id="previewContact"></ul>
+            </div>
+            <div class="sheet__photo">
+              <img id="previewPhoto" alt="证件照预览" />
+            </div>
+          </header>
+
+          <section class="sheet__section">
+            <h3>个人简介</h3>
+            <p id="previewSummary"></p>
+          </section>
+
+          <section class="sheet__section">
+            <h3>工作 / 实习经历</h3>
+            <ul id="previewExperience" class="sheet__list"></ul>
+          </section>
+
+          <section class="sheet__section">
+            <h3>教育背景</h3>
+            <ul id="previewEducation" class="sheet__list"></ul>
+          </section>
+
+          <section class="sheet__section">
+            <h3>技能 / 证书</h3>
+            <ul id="previewSkills" class="sheet__list sheet__list--inline"></ul>
+          </section>
+
+          <section class="sheet__section">
+            <h3>荣誉 / 奖项</h3>
+            <ul id="previewAwards" class="sheet__list"></ul>
+          </section>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <section id="cropModal" class="modal" hidden>
+    <div class="modal__content">
+      <h3>裁剪证件照</h3>
+      <p class="muted">拖动或缩放裁剪框，保持 3:4 比例以适配简历右上角。</p>
+      <div class="cropper-wrapper">
+        <img id="cropImage" alt="上传的证件照" />
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn-ghost" data-action="crop-cancel">取消</button>
+        <button type="button" class="btn" data-action="crop-confirm">应用裁剪</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+  <script src="scripts/html2pdf.bundle.min.js"></script>
+  <script>
+    (() => {
+      const defaults = {
+        fullName: '李可欣',
+        targetRole: '投行分析师',
+        phone: '138-0000-0000',
+        email: 'kexin.li@example.com',
+        location: '上海',
+        birth: '1997.03',
+        degree: '复旦大学 · 金融硕士',
+        affiliation: '中共党员',
+        website: 'linkedin.com/in/kexinli',
+        gpa: 'GPA 3.8 / 4.0',
+        summary: '4 年资本市场项目经验，熟悉 ECM/Debt 执行流程，擅长财务建模与跨部门沟通，推动 3 个 IPO 成功过会。',
+        experience: '2023.03-至今 | 华东证券 | ECM 分析师 | 担任 3 单 IPO 执行 PMO，协同律所券商完成问询回复\n2021.07-2023.02 | 信远资本 | 投资分析师 | 独立完成 12 个项目初步估值，输出 6 份投后跟踪报告',
+        education: '2019.09-2021.06 | 复旦大学 | 金融硕士 | GPA 3.8/4.0\n2015.09-2019.06 | 上海财经大学 | 金融学学士 | GPA 3.7/4.0',
+        skills: '财务建模（Excel / VBA）\nBloomberg 终端\nCFA 二级\n英语 IELTS 7.5',
+        awards: '2022 | CFA Level II | PASS\n2020 | 全国大学生金融创新大赛 | 二等奖',
+        photo: 'avatar.jpg'
+      };
+
+      const fields = {
+        fullName: document.getElementById('fullName'),
+        targetRole: document.getElementById('targetRole'),
+        phone: document.getElementById('phone'),
+        email: document.getElementById('email'),
+        location: document.getElementById('location'),
+        birth: document.getElementById('birth'),
+        degree: document.getElementById('degree'),
+        affiliation: document.getElementById('affiliation'),
+        website: document.getElementById('website'),
+        gpa: document.getElementById('gpa'),
+        photoUrl: document.getElementById('photoUrl'),
+        photoFile: document.getElementById('photoFile'),
+        summary: document.getElementById('summary'),
+        experience: document.getElementById('experience'),
+        education: document.getElementById('education'),
+        skills: document.getElementById('skills'),
+        awards: document.getElementById('awards')
+      };
+
+      const preview = {
+        sheet: document.getElementById('previewSheet'),
+        name: document.getElementById('previewName'),
+        role: document.getElementById('previewRole'),
+        meta: document.getElementById('previewMeta'),
+        contact: document.getElementById('previewContact'),
+        photo: document.getElementById('previewPhoto'),
+        summary: document.getElementById('previewSummary'),
+        experience: document.getElementById('previewExperience'),
+        education: document.getElementById('previewEducation'),
+        skills: document.getElementById('previewSkills'),
+        awards: document.getElementById('previewAwards')
+      };
+
+      let cropper = null;
+      let photoDataUrl = '';
+
+      function initForm() {
+        Object.entries(fields).forEach(([key, field]) => {
+          if (field.type === 'file') {
+            field.addEventListener('change', handlePhotoUpload);
+            return;
+          }
+          if (defaults[key]) {
+            field.value = defaults[key];
+          }
+          field.addEventListener('input', () => {
+            if (key === 'photoUrl') {
+              photoDataUrl = '';
+            }
+            updatePreview();
+          });
+        });
+        document.getElementById('resume-form').addEventListener('submit', (evt) => evt.preventDefault());
+      }
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[char]);
+      }
+
+      function ensureProtocol(url) {
+        if (!url) return '';
+        const trimmed = url.trim();
+        if (!trimmed || /^(data:|blob:)/i.test(trimmed)) return trimmed;
+        return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+      }
+
+      function valueOrDefault(key) {
+        const raw = (fields[key]?.value || '').trim();
+        return raw || defaults[key] || '';
+      }
+
+      function renderList(key, target, inline = false) {
+        const list = preview[target];
+        const source = valueOrDefault(key);
+        const items = source.split(/\n+/).map((item) => item.trim()).filter(Boolean);
+        list.classList.toggle('sheet__list--inline', inline);
+        list.innerHTML = items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+      }
+
+      function getPhotoSource() {
+        if (photoDataUrl) return photoDataUrl;
+        const link = fields.photoUrl.value.trim();
+        if (link) return ensureProtocol(link);
+        return defaults.photo;
+      }
+
+      function updatePreview() {
+        const template = document.querySelector('input[name="template"]:checked').value;
+        preview.sheet.className = `sheet sheet--${template}`;
+
+        preview.name.textContent = valueOrDefault('fullName');
+        preview.role.textContent = valueOrDefault('targetRole');
+        preview.meta.textContent = valueOrDefault('degree');
+
+        const contactPieces = [
+          { label: '电话', value: valueOrDefault('phone') },
+          { label: '邮箱', value: valueOrDefault('email') },
+          { label: '城市', value: valueOrDefault('location') },
+          { label: '出生', value: valueOrDefault('birth') },
+          { label: 'GPA', value: valueOrDefault('gpa') },
+          { label: '面貌', value: valueOrDefault('affiliation') }
+        ].filter(({ value }) => value).map(({ label, value }) => ({
+          label,
+          html: escapeHtml(value)
+        }));
+
+        const websiteLabel = valueOrDefault('website');
+        if (websiteLabel) {
+          contactPieces.push({
+            label: '主页',
+            html: `<a href="${ensureProtocol(websiteLabel)}" target="_blank" rel="noopener">${escapeHtml(websiteLabel)}</a>`
+          });
+        }
+
+        preview.contact.innerHTML = contactPieces
+          .map(({ label, html }) => `<li class="sheet__contact-item"><span class="sheet__contact-label">${label}：</span>${html}</li>`)
+          .join('');
+
+        preview.photo.src = getPhotoSource();
+        preview.summary.textContent = valueOrDefault('summary');
+        renderList('experience', 'experience');
+        renderList('education', 'education');
+        renderList('skills', 'skills', true);
+        renderList('awards', 'awards');
+      }
+
+      function handlePhotoUpload(event) {
+        const [file] = event.target.files;
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = document.getElementById('cropImage');
+          image.src = reader.result;
+          document.getElementById('cropModal').hidden = false;
+          if (cropper) {
+            cropper.destroy();
+          }
+          cropper = new Cropper(image, {
+            aspectRatio: 3 / 4,
+            viewMode: 1,
+            autoCropArea: 1,
+            movable: true,
+            zoomable: true,
+            responsive: true
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function bindCropperActions() {
+        document.querySelector('[data-action="crop-cancel"]').addEventListener('click', () => {
+          document.getElementById('cropModal').hidden = true;
+          fields.photoFile.value = '';
+          if (cropper) {
+            cropper.destroy();
+            cropper = null;
+          }
+        });
+
+        document.querySelector('[data-action="crop-confirm"]').addEventListener('click', () => {
+          if (!cropper) return;
+          const canvas = cropper.getCroppedCanvas({ width: 360, height: 480 });
+          photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          document.getElementById('cropModal').hidden = true;
+          cropper.destroy();
+          cropper = null;
+          fields.photoFile.value = '';
+          updatePreview();
+        });
+      }
+
+      function bindTemplatePicker() {
+        document.querySelectorAll('input[name="template"]').forEach((radio) => {
+          radio.addEventListener('change', updatePreview);
+        });
+      }
+
+      function bindButtons() {
+        document.querySelectorAll('[data-scroll]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-scroll');
+            document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+          });
+        });
+
+        document.querySelectorAll('[data-action="download"]').forEach((btn) => {
+          btn.addEventListener('click', downloadPdf);
+        });
+      }
+
+      function downloadPdf() {
+        const fileName = `${valueOrDefault('fullName') || '简历'}-简历.pdf`;
+        const options = {
+          margin: [0.4, 0.4, 0.4, 0.4],
+          filename: fileName,
+          html2canvas: { scale: window.devicePixelRatio > 1 ? 2 : 1.5, useCORS: true },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(options).from(preview.sheet).save();
+      }
+
+      initForm();
+      bindCropperActions();
+      bindTemplatePicker();
+      bindButtons();
+      updatePreview();
+    })();
+  </script>
+</body>
+</html>
