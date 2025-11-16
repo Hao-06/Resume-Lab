@@ -4,7 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="中文简历生成器：实时预览、证件照裁剪、多模板、导出 PDF。" />
+  <meta name="description"
+    content="填写必要信息即可实时预览 A4 模板，支持证件照裁剪、模板切换与 PDF 导出的简历生成器。" />
   <title>简历生成器</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" />
@@ -12,6 +13,10 @@
 
 <body>
   <header class="hero">
+    <div class="hero__halo" aria-hidden="true">
+      <div class="hero__glow hero__glow--one"></div>
+      <div class="hero__glow hero__glow--two"></div>
+    </div>
     <div class="hero__content">
       <p class="eyebrow">Resume Lab</p>
       <h1>简历生成器</h1>
@@ -20,6 +25,15 @@
         <button class="btn" type="button" data-scroll="#resume-form">开始填写</button>
         <button class="btn btn-ghost" type="button" data-action="download">下载 PDF</button>
       </div>
+    </div>
+    <div class="hero__decor" aria-hidden="true">
+      <span class="hero__pill hero__pill--primary">实时预览</span>
+      <span class="hero__pill hero__pill--secondary">证件照裁剪</span>
+      <span class="hero__pill hero__pill--tertiary">PDF 导出</span>
+      <span class="hero__pill hero__pill--quaternary">AI 辅助</span>
+      <span class="hero__pill hero__pill--quinary">云端同步</span>
+      <span class="hero__pill hero__pill--senary">智能排版</span>
+      <span class="hero__pill hero__pill--septenary">模板库</span>
     </div>
   </header>
 
@@ -45,8 +59,13 @@
         </div>
 
         <label class="form__block">
+          <span>个人简介（建议 3 句：背景 | 核心能力 | 关键成果）</span>
+          <textarea id="summary" rows="3" placeholder="3 句概述：行业资历 / 能力亮点 / 业务成绩"></textarea>
+        </label>
+
+        <label class="form__block">
           <span>工作 / 实习经历（每行：时间 | 公司 | 职位 | 量化成果）</span>
-          <textarea id="experience" rows="6" placeholder="2023.03-至今 | XX证券 | ECM 分析师 | 跟进 IPO 项目 4 单"></textarea>
+          <textarea id="experience" rows="6" placeholder="2023.03-至今 | XX证券 | ECM 分析师 | 负责 IPO 项目 4 单"></textarea>
         </label>
 
         <label class="form__block">
@@ -60,8 +79,8 @@
         </label>
 
         <label class="form__block">
-          <span>荣誉 / 奖项（每行：年份 | 奖项 | 级别）</span>
-          <textarea id="awards" rows="4" placeholder="2022 | CFA 二级 | 已通过"></textarea>
+          <span>荣誉 / 奖项（每行：年份 | 奖项 | 等级）</span>
+          <textarea id="awards" rows="4" placeholder="2022 | CFA Level II | PASS"></textarea>
         </label>
       </form>
     </section>
@@ -70,17 +89,26 @@
       <div class="panel__header">
         <div>
           <h2 class="panel__title">一页 A4 预览</h2>
-          <p class="muted">实时同步填写内容，可切换不同风格。</p>
+          <p class="muted">实时同步填写内容，可切换不同模板</p>
         </div>
         <button class="btn btn-ghost" type="button" data-action="download">下载 PDF</button>
       </div>
 
       <fieldset class="form__block">
-        <legend>模板风格</legend>
+        <legend>模板切换</legend>
         <div class="template-picker">
-          <label><input type="radio" name="template" value="classic" checked /> 深蓝正统</label>
-          <label><input type="radio" name="template" value="minimal" /> 极简留白</label>
-          <label><input type="radio" name="template" value="sidebar" /> 双色侧栏</label>
+          <label class="template-picker__option">
+            <input type="radio" name="template" value="classic" checked />
+            <span>经典常规</span>
+          </label>
+          <label class="template-picker__option">
+            <input type="radio" name="template" value="minimal" />
+            <span>极简留白</span>
+          </label>
+          <label class="template-picker__option">
+            <input type="radio" name="template" value="sidebar" />
+            <span>双色侧栏</span>
+          </label>
         </div>
       </fieldset>
 
@@ -98,6 +126,11 @@
             </div>
           </header>
           <div class="sheet__body">
+            <section class="sheet__section">
+              <h3>个人简介</h3>
+              <p id="previewSummary"></p>
+            </section>
+
             <section class="sheet__section">
               <h3>工作 / 实习经历</h3>
               <ul id="previewExperience" class="sheet__list"></ul>
@@ -126,7 +159,7 @@
   <section id="cropModal" class="modal" hidden>
     <div class="modal__content">
       <h3>裁剪证件照</h3>
-      <p class="muted">拖动或缩放裁剪框，保持 3:4 比例以适配简历右上角。</p>
+      <p class="muted">拖拽调整裁剪框，保持 3:4 比例并保留足够留白。</p>
       <div class="cropper-wrapper">
         <img id="cropImage" alt="上传的证件照" />
       </div>
@@ -140,7 +173,7 @@
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script src="scripts/html2pdf.bundle.min.js"></script>
   <script>
-    (() => {
+    function initResumeLab() {
       const defaults = {
         fullName: '李可欣',
         targetRole: '投行分析师',
@@ -152,11 +185,11 @@
         affiliation: '中共党员',
         website: 'linkedin.com/in/kexinli',
         gpa: 'GPA 3.8 / 4.0',
-        summary: '4 年资本市场项目经验，熟悉 ECM/Debt 执行流程，擅长财务建模与跨部门沟通，推动 3 个 IPO 成功过会。',
-        experience: '2023.03-至今 | 华东证券 | ECM 分析师 | 担任 3 单 IPO 执行 PMO，协同律所券商完成问询回复\n2021.07-2023.02 | 信远资本 | 投资分析师 | 独立完成 12 个项目初步估值，输出 6 份投后跟踪报告',
-        education: '2019.09-2021.06 | 复旦大学 | 金融硕士 | GPA 3.8/4.0\n2015.09-2019.06 | 上海财经大学 | 金融学学士 | GPA 3.7/4.0',
-        skills: '财务建模（Excel / VBA）\nBloomberg 终端\nCFA 二级\n英语 IELTS 7.5',
-        awards: '2022 | CFA Level II | PASS\n2020 | 全国大学生金融创新大赛 | 二等奖',
+        summary: '4 年 ECM 项目经验，熟悉 IPO / 债券承销流程，擅长财务建模与多团队协作，落地 3 个上市项目。',
+        experience: '2023.03-至今 | XX证券 | ECM 分析师 | 负责 3 单 IPO 执行，搭建收益测算模型，协调律师及审计；\n2021.07-2023.02 | 远见资本 | 投资分析师 | 跟进 12 个消费赛道项目，完成 6 份投资备忘录。',
+        education: '2019.09-2021.06 | 复旦大学 | 金融硕士 | GPA 3.8/4.0\n2015.09-2019.06 | 上海财经大学 | 经济学学士 | GPA 3.7/4.0',
+        skills: '财务建模 / Excel VBA\nBloomberg 终端\nCFA 二级\n英语 IELTS 7.5',
+        awards: '2022 | CFA Level II | PASS\n2020 | 全国大学生商业挑战赛 | 一等奖',
         photo: 'avatar.jpg'
       };
 
@@ -173,6 +206,7 @@
         gpa: document.getElementById('gpa'),
         photoUrl: document.getElementById('photoUrl'),
         photoFile: document.getElementById('photoFile'),
+        summary: document.getElementById('summary'),
         experience: document.getElementById('experience'),
         education: document.getElementById('education'),
         skills: document.getElementById('skills'),
@@ -186,43 +220,20 @@
         meta: document.getElementById('previewMeta'),
         contact: document.getElementById('previewContact'),
         photo: document.getElementById('previewPhoto'),
+        summary: document.getElementById('previewSummary'),
         experience: document.getElementById('previewExperience'),
         education: document.getElementById('previewEducation'),
         skills: document.getElementById('previewSkills'),
         awards: document.getElementById('previewAwards')
       };
 
+      const cropModal = document.getElementById('cropModal');
+      const cropImage = document.getElementById('cropImage');
+      const cropApply = document.querySelector('[data-action="crop-confirm"]');
+      const cropCancel = document.querySelector('[data-action="crop-cancel"]');
+
       let cropper = null;
       let photoDataUrl = '';
-
-      function initForm() {
-        Object.entries(fields).forEach(([key, field]) => {
-          if (field.type === 'file') {
-            field.addEventListener('change', handlePhotoUpload);
-            return;
-          }
-          if (defaults[key]) {
-            field.value = defaults[key];
-          }
-          field.addEventListener('input', () => {
-            if (key === 'photoUrl') {
-              photoDataUrl = '';
-            }
-            updatePreview();
-          });
-        });
-        document.getElementById('resume-form').addEventListener('submit', (evt) => evt.preventDefault());
-      }
-
-      function escapeHtml(value) {
-        return value.replace(/[&<>"']/g, (char) => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        })[char]);
-      }
 
       function ensureProtocol(url) {
         if (!url) return '';
@@ -231,147 +242,168 @@
         return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
       }
 
-      function valueOrDefault(key) {
-        const raw = (fields[key]?.value || '').trim();
-        return raw || defaults[key] || '';
+      function splitLines(value) {
+        return value
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter(Boolean);
       }
 
-      function renderList(key, target, inline = false) {
-        const list = preview[target];
-        const source = valueOrDefault(key);
-        const items = source.split(/\n+/).map((item) => item.trim()).filter(Boolean);
-        list.classList.toggle('sheet__list--inline', inline);
-        list.innerHTML = items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-      }
-
-      function getPhotoSource() {
-        if (photoDataUrl) return photoDataUrl;
-        const link = fields.photoUrl.value.trim();
-        if (link) return ensureProtocol(link);
-        return defaults.photo;
+      function renderList(target, rows, inline = false) {
+        target.innerHTML = '';
+        rows.forEach((row) => {
+          const li = document.createElement('li');
+          if (inline) li.classList.add('sheet__pill');
+          li.textContent = row;
+          target.appendChild(li);
+        });
       }
 
       function updatePreview() {
-        const template = document.querySelector('input[name="template"]:checked').value;
-        preview.sheet.className = `sheet sheet--${template}`;
+        const name = fields.fullName.value.trim() || defaults.fullName;
+        const role = fields.targetRole.value.trim() || defaults.targetRole;
+        const location = fields.location.value.trim() || defaults.location;
+        const birth = fields.birth.value.trim() || defaults.birth;
+        const degree = fields.degree.value.trim() || defaults.degree;
+        const affiliation = fields.affiliation.value.trim() || defaults.affiliation;
+        const website = fields.website.value.trim() || defaults.website;
+        const gpa = fields.gpa.value.trim() || defaults.gpa;
 
-        preview.name.textContent = valueOrDefault('fullName');
-        const roleValue = valueOrDefault('targetRole');
-        preview.role.textContent = roleValue ? `应聘职位：${roleValue}` : '';
-        preview.meta.textContent = valueOrDefault('degree');
+        preview.name.textContent = name;
+        preview.role.textContent = role;
+        preview.meta.textContent = [location, birth, degree].filter(Boolean).join(' · ');
 
-        const contactPieces = [
-          { label: '电话', value: valueOrDefault('phone') },
-          { label: '邮箱', value: valueOrDefault('email') },
-          { label: '城市', value: valueOrDefault('location') },
-          { label: '出生', value: valueOrDefault('birth') },
-          { label: 'GPA', value: valueOrDefault('gpa') },
-          { label: '面貌', value: valueOrDefault('affiliation') }
-        ].filter(({ value }) => value).map(({ label, value }) => ({
-          label,
-          html: escapeHtml(value)
-        }));
+        const contacts = [
+          { label: '电话', value: fields.phone.value.trim() || defaults.phone },
+          { label: '邮箱', value: fields.email.value.trim() || defaults.email },
+          { label: '网站', value: ensureProtocol(website) },
+          { label: '身份', value: affiliation },
+          { label: '成绩', value: gpa }
+        ].filter(({ value }) => value);
 
-        const websiteLabel = valueOrDefault('website');
-        if (websiteLabel) {
-          contactPieces.push({
-            label: '主页',
-            html: `<a href="${ensureProtocol(websiteLabel)}" target="_blank" rel="noopener">${escapeHtml(websiteLabel)}</a>`
-          });
-        }
+        preview.contact.innerHTML = '';
+        contacts.forEach(({ label, value }) => {
+          const li = document.createElement('li');
+          li.className = 'sheet__contact-item';
+          li.innerHTML = `<span class="sheet__contact-label">${label}</span><span class="sheet__contact-value">${value}</span>`;
+          preview.contact.appendChild(li);
+        });
 
-        preview.contact.innerHTML = contactPieces
-          .map(({ label, html }) => `<li class="sheet__contact-item"><span class="sheet__contact-label">${label}：</span><span class="sheet__contact-value">${html}</span></li>`)
-          .join('');
+        const summary = fields.summary.value.trim() || defaults.summary;
+        preview.summary.textContent = summary;
 
-        preview.photo.src = getPhotoSource();
-        renderList('experience', 'experience');
-        renderList('education', 'education');
-        renderList('skills', 'skills', true);
-        renderList('awards', 'awards');
+        renderList(preview.experience, splitLines(fields.experience.value || defaults.experience));
+        renderList(preview.education, splitLines(fields.education.value || defaults.education));
+        renderList(preview.skills, splitLines(fields.skills.value || defaults.skills), true);
+        renderList(preview.awards, splitLines(fields.awards.value || defaults.awards));
+
+        const customPhoto = photoDataUrl || ensureProtocol(fields.photoUrl.value);
+        preview.photo.src = customPhoto || defaults.photo;
       }
 
       function handlePhotoUpload(event) {
-        const [file] = event.target.files;
+        const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = () => {
-          const image = document.getElementById('cropImage');
-          image.src = reader.result;
-          document.getElementById('cropModal').hidden = false;
-          if (cropper) {
-            cropper.destroy();
-          }
-          cropper = new Cropper(image, {
+          cropImage.src = reader.result;
+          cropModal.hidden = false;
+          cropper?.destroy();
+          cropper = new Cropper(cropImage, {
             aspectRatio: 3 / 4,
             viewMode: 1,
-            autoCropArea: 1,
-            movable: true,
-            zoomable: true,
-            responsive: true
+            background: false,
+            dragMode: 'move'
           });
         };
         reader.readAsDataURL(file);
       }
 
-      function bindCropperActions() {
-        document.querySelector('[data-action="crop-cancel"]').addEventListener('click', () => {
-          document.getElementById('cropModal').hidden = true;
-          fields.photoFile.value = '';
-          if (cropper) {
-            cropper.destroy();
-            cropper = null;
+      function closeCropper() {
+        cropModal.hidden = true;
+        cropper?.destroy();
+        cropper = null;
+        fields.photoFile.value = '';
+      }
+
+      cropApply.addEventListener('click', () => {
+        if (!cropper) return;
+        const canvas = cropper.getCroppedCanvas({ width: 360, height: 480, imageSmoothingQuality: 'high' });
+        photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        closeCropper();
+        updatePreview();
+      });
+
+      cropCancel.addEventListener('click', closeCropper);
+
+      function createPrintableSheet() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'print-wrapper';
+        const printable = preview.sheet.cloneNode(true);
+        printable.classList.add('sheet--print');
+        wrapper.appendChild(printable);
+        document.body.appendChild(wrapper);
+        return { wrapper, printable };
+      }
+
+      function downloadPDF() {
+        const { wrapper, printable } = createPrintableSheet();
+        html2pdf().set({
+          margin: 0,
+          filename: 'resume.pdf',
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all'] }
+        }).from(printable).save().finally(() => wrapper.remove());
+      }
+
+      function initForm() {
+        Object.entries(fields).forEach(([key, element]) => {
+          if (element.type === 'file') {
+            element.addEventListener('change', handlePhotoUpload);
+            return;
           }
+          if (defaults[key]) element.value = defaults[key];
+          element.addEventListener('input', () => {
+            if (key === 'photoUrl') photoDataUrl = '';
+            updatePreview();
+          });
         });
-
-        document.querySelector('[data-action="crop-confirm"]').addEventListener('click', () => {
-          if (!cropper) return;
-          const canvas = cropper.getCroppedCanvas({ width: 360, height: 480 });
-          photoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-          document.getElementById('cropModal').hidden = true;
-          cropper.destroy();
-          cropper = null;
-          fields.photoFile.value = '';
-          updatePreview();
-        });
+        document.getElementById('resume-form').addEventListener('submit', (evt) => evt.preventDefault());
       }
 
-      function bindTemplatePicker() {
+      function initTemplatePicker() {
         document.querySelectorAll('input[name="template"]').forEach((radio) => {
-          radio.addEventListener('change', updatePreview);
+          radio.addEventListener('change', () => {
+            preview.sheet.className = `sheet sheet--${radio.value}`;
+          });
         });
       }
 
-      function bindButtons() {
+      function initActions() {
         document.querySelectorAll('[data-scroll]').forEach((btn) => {
           btn.addEventListener('click', () => {
-            const target = btn.getAttribute('data-scroll');
-            document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' });
+            document.querySelector(btn.dataset.scroll)?.scrollIntoView({ behavior: 'smooth' });
           });
         });
 
         document.querySelectorAll('[data-action="download"]').forEach((btn) => {
-          btn.addEventListener('click', downloadPdf);
+          btn.addEventListener('click', downloadPDF);
         });
       }
 
-      function downloadPdf() {
-        const fileName = `${valueOrDefault('fullName') || '简历'}-简历.pdf`;
-        const options = {
-          margin: [0.4, 0.4, 0.4, 0.4],
-          filename: fileName,
-          html2canvas: { scale: window.devicePixelRatio > 1 ? 2 : 1.5, useCORS: true },
-          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(options).from(preview.sheet).save();
-      }
-
       initForm();
-      bindCropperActions();
-      bindTemplatePicker();
-      bindButtons();
+      initTemplatePicker();
+      initActions();
       updatePreview();
-    })();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initResumeLab, { once: true });
+    } else {
+      initResumeLab();
+    }
   </script>
 </body>
 
