@@ -1,18 +1,20 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="中文简历生成器：实时预览、证件照裁剪、多模板、导出 PDF。" />
-  <title>中文简历生成器</title>
+  <title>简历生成器</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" />
 </head>
+
 <body>
   <header class="hero">
     <div class="hero__content">
       <p class="eyebrow">Resume Lab</p>
-      <h1>一页式中文简历生成器</h1>
+      <h1>简历生成器</h1>
       <p class="muted">填写必要信息后即可实时查看 A4 预览，支持证件照裁剪与多模板导出 PDF。</p>
       <div class="hero__actions">
         <button class="btn" type="button" data-scroll="#resume-form">开始填写</button>
@@ -37,14 +39,10 @@
           <label><span>政治面貌 / 身份</span><input id="affiliation" type="text" placeholder="中共党员" /></label>
           <label><span>个人主页（选填）</span><input id="website" type="text" placeholder="linkedin.com/in/you" /></label>
           <label><span>GPA（选填）</span><input id="gpa" type="text" placeholder="GPA 3.8 / 4.0" /></label>
-          <label><span>证件照链接（选填）</span><input id="photoUrl" type="text" placeholder="https://example.com/photo.jpg" /></label>
+          <label><span>证件照链接（选填）</span><input id="photoUrl" type="text"
+              placeholder="https://example.com/photo.jpg" /></label>
           <label><span>上传证件照</span><input id="photoFile" type="file" accept="image/*" /></label>
         </div>
-
-        <label class="form__block">
-          <span>个人概述（2-3 句话）</span>
-          <textarea id="summary" rows="3" placeholder="概括 3 项亮点：年限、核心技能、突出成绩。"></textarea>
-        </label>
 
         <label class="form__block">
           <span>工作 / 实习经历（每行：时间 | 公司 | 职位 | 量化成果）</span>
@@ -99,31 +97,27 @@
               <img id="previewPhoto" alt="证件照预览" />
             </div>
           </header>
+          <div class="sheet__body">
+            <section class="sheet__section">
+              <h3>工作 / 实习经历</h3>
+              <ul id="previewExperience" class="sheet__list"></ul>
+            </section>
 
-          <section class="sheet__section">
-            <h3>个人简介</h3>
-            <p id="previewSummary"></p>
-          </section>
+            <section class="sheet__section">
+              <h3>教育背景</h3>
+              <ul id="previewEducation" class="sheet__list"></ul>
+            </section>
 
-          <section class="sheet__section">
-            <h3>工作 / 实习经历</h3>
-            <ul id="previewExperience" class="sheet__list"></ul>
-          </section>
+            <section class="sheet__section">
+              <h3>技能 / 证书</h3>
+              <ul id="previewSkills" class="sheet__list sheet__list--inline"></ul>
+            </section>
 
-          <section class="sheet__section">
-            <h3>教育背景</h3>
-            <ul id="previewEducation" class="sheet__list"></ul>
-          </section>
-
-          <section class="sheet__section">
-            <h3>技能 / 证书</h3>
-            <ul id="previewSkills" class="sheet__list sheet__list--inline"></ul>
-          </section>
-
-          <section class="sheet__section">
-            <h3>荣誉 / 奖项</h3>
-            <ul id="previewAwards" class="sheet__list"></ul>
-          </section>
+            <section class="sheet__section">
+              <h3>荣誉 / 奖项</h3>
+              <ul id="previewAwards" class="sheet__list"></ul>
+            </section>
+          </div>
         </article>
       </div>
     </section>
@@ -179,7 +173,6 @@
         gpa: document.getElementById('gpa'),
         photoUrl: document.getElementById('photoUrl'),
         photoFile: document.getElementById('photoFile'),
-        summary: document.getElementById('summary'),
         experience: document.getElementById('experience'),
         education: document.getElementById('education'),
         skills: document.getElementById('skills'),
@@ -193,7 +186,6 @@
         meta: document.getElementById('previewMeta'),
         contact: document.getElementById('previewContact'),
         photo: document.getElementById('previewPhoto'),
-        summary: document.getElementById('previewSummary'),
         experience: document.getElementById('previewExperience'),
         education: document.getElementById('previewEducation'),
         skills: document.getElementById('previewSkills'),
@@ -264,7 +256,8 @@
         preview.sheet.className = `sheet sheet--${template}`;
 
         preview.name.textContent = valueOrDefault('fullName');
-        preview.role.textContent = valueOrDefault('targetRole');
+        const roleValue = valueOrDefault('targetRole');
+        preview.role.textContent = roleValue ? `应聘职位：${roleValue}` : '';
         preview.meta.textContent = valueOrDefault('degree');
 
         const contactPieces = [
@@ -288,11 +281,10 @@
         }
 
         preview.contact.innerHTML = contactPieces
-          .map(({ label, html }) => `<li class="sheet__contact-item"><span class="sheet__contact-label">${label}：</span>${html}</li>`)
+          .map(({ label, html }) => `<li class="sheet__contact-item"><span class="sheet__contact-label">${label}：</span><span class="sheet__contact-value">${html}</span></li>`)
           .join('');
 
         preview.photo.src = getPhotoSource();
-        preview.summary.textContent = valueOrDefault('summary');
         renderList('experience', 'experience');
         renderList('education', 'education');
         renderList('skills', 'skills', true);
@@ -382,4 +374,5 @@
     })();
   </script>
 </body>
+
 </html>
